@@ -10,7 +10,7 @@ class AppColors {
 }
 
 ThemeData buildTheme() {
-  final scheme = ColorScheme.fromSeed(seedColor: AppColors.primary);
+  final scheme = ColorScheme.fromSeed(seedColor: AppColors.primary, primary: AppColors.primary);
   return ThemeData(
     colorScheme: scheme,
     scaffoldBackgroundColor: Colors.white,

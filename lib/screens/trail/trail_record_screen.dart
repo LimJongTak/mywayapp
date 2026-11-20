@@ -183,6 +183,7 @@ class _TrailRecordScreenState extends State<TrailRecordScreen> {
               if (_mode == RecordMode.draw) ...[
                 Expanded(
                   child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
                     onPressed: _points.isEmpty ? null : () => setState(_points.removeLast),
                     icon: const Icon(Icons.undo),
                     label: const Text('되돌리기'),
@@ -191,6 +192,7 @@ class _TrailRecordScreenState extends State<TrailRecordScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
                     onPressed: _points.isEmpty ? null : () => setState(_points.clear),
                     icon: const Icon(Icons.delete_outline),
                     label: const Text('초기화'),

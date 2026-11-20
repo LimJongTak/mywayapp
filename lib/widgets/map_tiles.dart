@@ -24,7 +24,19 @@ class OsmAttribution extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SimpleAttributionWidget(source: Text('OpenStreetMap contributors'));
+    return const Align(
+      alignment: Alignment.bottomRight,
+      child: Padding(
+        padding: EdgeInsets.all(2),
+        child: ColoredBox(
+          color: Color(0xCCFFFFFF),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            child: Text('© OpenStreetMap', style: TextStyle(fontSize: 10, color: Colors.black54)),
+          ),
+        ),
+      ),
+    );
   }
 }
 

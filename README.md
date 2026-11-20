@@ -17,6 +17,18 @@ Android / iOS / Web 을 하나의 코드로 지원합니다.
 
 ---
 
+## 화면
+
+| 로그인 | 지도 홈 | 산책로 상세 | 산책로 등록 |
+|---|---|---|---|
+| <img src="docs/screenshots/01_login.png" width="200"> | <img src="docs/screenshots/02b_map_selected.png" width="200"> | <img src="docs/screenshots/10_trail_detail.png" width="200"> | <img src="docs/screenshots/07_record.png" width="200"> |
+| **검색** | **커뮤니티** | **마이페이지** | **리워드** |
+| <img src="docs/screenshots/03_search.png" width="200"> | <img src="docs/screenshots/04_community.png" width="200"> | <img src="docs/screenshots/05_mypage.png" width="200"> | <img src="docs/screenshots/08_rewards.png" width="200"> |
+
+> 로컬 에뮬레이터 + 샘플 데이터로 캡처한 웹 버전 화면입니다. 캡처 환경에서 지도 타일 서버 접속이 막혀 지도 배경은 회색으로 보입니다 (실제 기기/브라우저에서는 OpenStreetMap 지도가 표시됩니다).
+
+---
+
 ## 1. 기능 (기획서 → 구현 매핑)
 
 | 기획서 | 구현 화면 / 기능 |

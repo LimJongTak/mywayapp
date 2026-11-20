@@ -195,12 +195,12 @@ class _MapScreenState extends State<MapScreen> {
         // 좌하단 메뉴 / 우하단 내 위치
         Positioned(
           left: 12,
-          bottom: _selected == null ? 16 : 150,
+          bottom: _selected == null ? 28 : 150,
           child: _MapMenu(),
         ),
         Positioned(
           right: 12,
-          bottom: _selected == null ? 16 : 150,
+          bottom: _selected == null ? 28 : 150,
           child: FloatingActionButton.small(
             heroTag: 'locate',
             tooltip: '내 위치',
