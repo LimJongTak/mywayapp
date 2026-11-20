@@ -36,7 +36,7 @@ class PointsScreen extends StatelessWidget {
                     '${l.amount > 0 ? '+' : ''}${l.amount}P',
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: l.amount > 0 ? AppColors.primary : Colors.red,
+                      color: l.amount > 0 ? AppColors.success : AppColors.orange,
                     ),
                   ),
                 );

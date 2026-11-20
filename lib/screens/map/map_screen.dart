@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -113,7 +112,12 @@ class _MapScreenState extends State<MapScreen> {
             const OsmTileLayer(),
             if (_selected != null)
               PolylineLayer(polylines: [
-                Polyline(points: _selected!.path, strokeWidth: 5, color: AppColors.primary),
+                Polyline(
+                    points: _selected!.path,
+                    strokeWidth: 5,
+                    color: AppColors.black,
+                    borderStrokeWidth: 2,
+                    borderColor: Colors.white),
               ]),
             MarkerLayer(markers: [
               for (final f in facilities)
@@ -158,16 +162,21 @@ class _MapScreenState extends State<MapScreen> {
             padding: const EdgeInsets.all(12),
             child: Column(children: [
               Material(
-                elevation: 3,
-                borderRadius: BorderRadius.circular(12),
+                elevation: 4,
+                shadowColor: const Color(0x22000000),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 child: TextField(
                   controller: _search,
                   textInputAction: TextInputAction.search,
                   onSubmitted: (_) => _onSearch(),
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
-                    hintText: '산책로 이름이나 #태그를 검색하세요.',
+                    hintText: '산책로 이름이나 #태그 검색',
                     fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      borderSide: BorderSide.none,
+                    ),
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _search.text.isEmpty
                         ? null
@@ -195,12 +204,12 @@ class _MapScreenState extends State<MapScreen> {
         // 좌하단 메뉴 / 우하단 내 위치
         Positioned(
           left: 12,
-          bottom: _selected == null ? 28 : 150,
+          bottom: MediaQuery.paddingOf(context).bottom + (_selected == null ? 28 : 200),
           child: _MapMenu(),
         ),
         Positioned(
           right: 12,
-          bottom: _selected == null ? 28 : 150,
+          bottom: MediaQuery.paddingOf(context).bottom + (_selected == null ? 28 : 200),
           child: FloatingActionButton.small(
             heroTag: 'locate',
             tooltip: '내 위치',
@@ -211,12 +220,14 @@ class _MapScreenState extends State<MapScreen> {
         ),
         if (_selected != null)
           Positioned(
-            left: 12,
-            right: 12,
-            bottom: 12,
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.paddingOf(context).bottom + 8,
             child: Material(
-              elevation: 6,
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.transparent,
+              elevation: 8,
+              shadowColor: const Color(0x33000000),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               child: TrailCard(
                 trail: _selected!,
                 onTap: () => context.push('/trail/${_selected!.id}'),
@@ -300,26 +311,23 @@ class _TrailPin extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: selected ? AppColors.primary : Colors.white, width: 3),
-          boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black26)],
-          gradient: AppColors.brandGradient,
-          image: trail.photoUrl == null
-              ? null
-              : DecorationImage(
-                  image: CachedNetworkImageProvider(trail.photoUrl!), fit: BoxFit.cover),
+          border: Border.all(color: selected ? AppColors.yellow500 : Colors.white, width: 3),
+          boxShadow: const [BoxShadow(blurRadius: 6, color: Color(0x40000000))],
         ),
-        child: trail.photoUrl == null
-            ? const Icon(Icons.directions_walk, color: Colors.white)
-            : null,
+        child: ClipOval(
+          child: TrailPhoto(
+              url: trail.photoUrl, category: trail.category, radius: 0, emojiSize: size * 0.42),
+        ),
       ),
       Container(
-        margin: const EdgeInsets.only(top: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        margin: const EdgeInsets.only(top: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          color: selected ? AppColors.black : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: const [BoxShadow(blurRadius: 3, color: Color(0x22000000))],
         ),
-        child: RatingBadge(rating: trail.ratingAvg),
+        child: RatingBadge(rating: trail.ratingAvg, color: selected ? Colors.white : null),
       ),
     ]);
   }

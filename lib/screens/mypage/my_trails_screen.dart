@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/errors.dart';
+import '../../core/theme.dart';
 import '../../models/trail.dart';
 import '../../services/firebase_refs.dart';
 import '../../services/trail_service.dart';
@@ -35,7 +36,7 @@ class MyTrailsScreen extends StatelessWidget {
                 TextButton(
                     onPressed: () => context.push('/trail/${t.id}/edit'), child: const Text('수정')),
                 TextButton(
-                  style: TextButton.styleFrom(foregroundColor: Colors.red),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.orange),
                   onPressed: () async {
                     if (!await confirmDialog(context, '삭제', '"${t.title}"을(를) 삭제할까요?')) return;
                     try {

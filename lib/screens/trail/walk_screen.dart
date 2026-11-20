@@ -145,8 +145,8 @@ class _WalkScreenState extends State<WalkScreen> {
               Polyline(
                   points: trail.path,
                   strokeWidth: 8,
-                  color: AppColors.primary.withValues(alpha: 0.4)),
-              Polyline(points: _walked, strokeWidth: 4, color: Colors.red),
+                  color: AppColors.yellow500.withValues(alpha: 0.8)),
+              Polyline(points: _walked, strokeWidth: 4, color: AppColors.black),
             ]),
             MarkerLayer(markers: [
               Marker(point: trail.path.first, child: const Icon(Icons.flag, color: Colors.green)),
@@ -178,7 +178,15 @@ class _WalkScreenState extends State<WalkScreen> {
                 _metric('목표', formatDistance(trail.distanceM)),
               ]),
               const SizedBox(height: 8),
-              LinearProgressIndicator(value: progress, minHeight: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 8,
+                  color: AppColors.yellow500,
+                  backgroundColor: AppColors.grey100,
+                ),
+              ),
               const SizedBox(height: 12),
               if (!walking)
                 FilledButton.icon(

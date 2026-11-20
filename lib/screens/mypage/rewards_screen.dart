@@ -69,7 +69,12 @@ class RewardsScreen extends StatelessWidget {
                 for (final r in list)
                   Card(
                     child: ListTile(
-                      leading: const Icon(Icons.local_offer, color: AppColors.primary),
+                      leading: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: const BoxDecoration(color: AppColors.yellow100, shape: BoxShape.circle),
+                        child: const Icon(Icons.local_offer_outlined, color: AppColors.yellow700),
+                      ),
                       title: Text(r.title),
                       subtitle: Text('${r.partnerName} · 남은 수량 ${r.stock}'),
                       trailing: FilledButton(

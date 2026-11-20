@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/errors.dart';
+import '../../core/theme.dart';
 import '../../core/validators.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/common.dart';
@@ -63,7 +64,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEFF2FF),
+                    color: AppColors.yellow100,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Text('🎉 지금 가입하면 500P 지급!\n추천인 코드 입력 시 300P 추가 적립',
@@ -73,21 +74,21 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextFormField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(hintText: '이메일'),
+                  decoration: const InputDecoration(labelText: '이메일'),
                   validator: Validators.email,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _pw,
                   obscureText: true,
-                  decoration: const InputDecoration(hintText: '비밀번호 (영문+숫자 8자 이상)'),
+                  decoration: const InputDecoration(labelText: '비밀번호 (영문+숫자 8자 이상)'),
                   validator: Validators.password,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _pw2,
                   obscureText: true,
-                  decoration: const InputDecoration(hintText: '비밀번호 확인'),
+                  decoration: const InputDecoration(labelText: '비밀번호 확인'),
                   validator: (v) => v != _pw.text ? '비밀번호가 일치하지 않습니다.' : null,
                 ),
                 const SizedBox(height: 12),

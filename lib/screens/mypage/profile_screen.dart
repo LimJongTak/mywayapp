@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/errors.dart';
+import '../../core/theme.dart';
 import '../../core/validators.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/common.dart';
@@ -83,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           const SizedBox(height: 40),
           TextButton(
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.orange),
             onPressed: _busy
                 ? null
                 : () async {

@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -58,120 +57,216 @@ class _TrailDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final bounds = LatLngBounds.fromPoints(trail.path);
     return Scaffold(
-      body: CustomScrollView(slivers: [
-        SliverAppBar(
-          pinned: true,
-          expandedHeight: trail.photoUrl == null ? null : 240,
-          flexibleSpace: trail.photoUrl == null
-              ? null
-              : FlexibleSpaceBar(
-                  background: CachedNetworkImage(imageUrl: trail.photoUrl!, fit: BoxFit.cover),
-                ),
-          actions: [
-            _FavoriteButton(trail: trail),
-            if (_isOwner || AuthService.instance.isAdmin)
-              PopupMenuButton<String>(
-                onSelected: (v) {
-                  if (v == 'edit') context.push('/trail/${trail.id}/edit');
-                  if (v == 'delete') _delete(context);
-                },
-                itemBuilder: (_) => [
-                  if (_isOwner) const PopupMenuItem(value: 'edit', child: Text('수정')),
-                  const PopupMenuItem(value: 'delete', child: Text('삭제')),
-                ],
-              ),
-          ],
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(16),
-          sliver: SliverList.list(children: [
-            Row(children: [
-              Expanded(
-                child: Text(trail.title,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-              ),
-              Chip(label: Text(TrailCategory.labels[trail.category] ?? '일반')),
-            ]),
-            const SizedBox(height: 4),
-            Row(children: [
-              RatingBadge(rating: trail.ratingAvg, count: trail.ratingCount),
-              const SizedBox(width: 12),
-              Text('by ${trail.ownerName}', style: const TextStyle(color: Colors.black54)),
-            ]),
-            const SizedBox(height: 12),
-            Row(children: [
-              _Stat(icon: Icons.straighten, label: '거리', value: formatDistance(trail.distanceM)),
-              _Stat(icon: Icons.timer_outlined, label: '도보', value: formatMinutes(trail.durationMin)),
-              _Stat(icon: Icons.directions_walk, label: '걸은 횟수', value: '${trail.walkCount}회'),
-              _Stat(icon: Icons.favorite_border, label: '관심', value: '${trail.favoriteCount}'),
-            ]),
-            const SizedBox(height: 16),
-            if (trail.description.isNotEmpty) Text(trail.description, style: const TextStyle(height: 1.5)),
-            if (trail.tags.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(spacing: 6, children: [
-                for (final t in trail.tags)
-                  Text('#$t', style: const TextStyle(color: AppColors.primary)),
-              ]),
+      appBar: AppBar(
+        title: Text(trail.title),
+        actions: [
+          _FavoriteButton(trail: trail),
+          if (_isOwner || AuthService.instance.isAdmin)
+            PopupMenuButton<String>(
+              onSelected: (v) {
+                if (v == 'edit') context.push('/trail/${trail.id}/edit');
+                if (v == 'delete') _delete(context);
+              },
+              itemBuilder: (_) => [
+                if (_isOwner) const PopupMenuItem(value: 'edit', child: Text('수정')),
+                const PopupMenuItem(value: 'delete', child: Text('삭제')),
+              ],
+            ),
+        ],
+      ),
+      body: ListView(padding: const EdgeInsets.fromLTRB(24, 8, 24, 32), children: [
+        // 히어로 사진 카드
+        Container(
+          height: 240,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            boxShadow: const [
+              BoxShadow(color: Color(0x22000000), blurRadius: 24, offset: Offset(0, 10)),
             ],
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                height: 220,
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCameraFit: CameraFit.bounds(
-                        bounds: bounds, padding: const EdgeInsets.all(32)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            child: Stack(fit: StackFit.expand, children: [
+              TrailPhoto(
+                  url: trail.photoUrl,
+                  category: trail.category,
+                  radius: 0,
+                  emojiSize: 56,
+                  emojiAlignment: const Alignment(0, -0.62)),
+              const DecoratedBox(decoration: BoxDecoration(gradient: AppColors.photoScrim)),
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: 20,
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(trail.title,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    const Icon(Icons.place_outlined, size: 15, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${TrailCategory.labels[trail.category] ?? '일반'} · by ${trail.ownerName}',
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+                  ]),
+                  const SizedBox(height: 10),
+                  Text('${trail.walkCount}명이 이 길을 걸었어요',
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  DefaultTextStyle.merge(
+                    style: const TextStyle(color: Colors.white),
+                    child: RatingStars(rating: trail.ratingAvg, size: 16),
                   ),
-                  children: [
-                    const OsmTileLayer(),
-                    PolylineLayer(polylines: [
-                      Polyline(points: trail.path, strokeWidth: 5, color: AppColors.primary),
-                    ]),
-                    MarkerLayer(markers: [
-                      Marker(
-                          point: trail.path.first,
-                          child: const Icon(Icons.flag, color: Colors.green)),
-                      Marker(
-                          point: trail.path.last,
-                          child: const Icon(Icons.sports_score, color: Colors.red)),
-                    ]),
-                  ],
-                ),
+                ]),
               ),
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () => context.push('/trail/${trail.id}/walk'),
-              icon: const Icon(Icons.directions_walk),
-              label: const Text('이 산책로 걷기 (포인트 적립)'),
-            ),
-            const SizedBox(height: 24),
-            _ReviewSection(trail: trail),
+            ]),
+          ),
+        ),
+
+        const _Heading('산책 정보'),
+        SizedBox(
+          height: 48,
+          child: ListView(scrollDirection: Axis.horizontal, children: [
+            InfoPill(icon: Icons.straighten, label: formatDistance(trail.distanceM)),
+            const SizedBox(width: 10),
+            InfoPill(icon: Icons.schedule, label: '도보 ${formatMinutes(trail.durationMin)}'),
+            const SizedBox(width: 10),
+            InfoPill(icon: Icons.directions_walk, label: '${trail.walkCount}회'),
+            const SizedBox(width: 10),
+            InfoPill(icon: Icons.favorite_border, label: '관심 ${trail.favoriteCount}'),
           ]),
         ),
+
+        if (trail.description.isNotEmpty || trail.tags.isNotEmpty) ...[
+          const _Heading('소개'),
+          if (trail.description.isNotEmpty)
+            Text(trail.description,
+                style: const TextStyle(height: 1.7, fontSize: 14, color: Color(0xFF3A3A3A))),
+          if (trail.tags.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final t in trail.tags)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.grey100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text('#$t', style: const TextStyle(fontSize: 13)),
+                ),
+            ]),
+          ],
+        ],
+
+        const _Heading('경로'),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          child: SizedBox(
+            height: 200,
+            child: FlutterMap(
+              options: MapOptions(
+                initialCameraFit:
+                    CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(32)),
+              ),
+              children: [
+                const OsmTileLayer(),
+                PolylineLayer(polylines: [
+                  Polyline(
+                      points: trail.path,
+                      strokeWidth: 5,
+                      color: AppColors.black,
+                      borderStrokeWidth: 2,
+                      borderColor: Colors.white),
+                ]),
+                MarkerLayer(markers: [
+                  Marker(
+                    point: trail.path.first,
+                    width: 32,
+                    height: 32,
+                    child: const _MapPin(color: AppColors.yellow500, icon: Icons.flag_rounded),
+                  ),
+                  Marker(
+                    point: trail.path.last,
+                    width: 32,
+                    height: 32,
+                    child: const _MapPin(color: AppColors.black, icon: Icons.sports_score),
+                  ),
+                ]),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        _ReviewSection(trail: trail),
       ]),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          boxShadow: [BoxShadow(color: Color(0x14000000), blurRadius: 24, offset: Offset(0, -6))],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 14, 24, 14),
+            child: Row(children: [
+              Expanded(
+                child: Text.rich(TextSpan(children: [
+                  TextSpan(
+                    text: formatDistance(trail.distanceM),
+                    style: const TextStyle(
+                        color: AppColors.orange, fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                  TextSpan(
+                    text: ' / 도보 ${formatMinutes(trail.durationMin)}',
+                    style: const TextStyle(color: AppColors.grey400, fontSize: 13),
+                  ),
+                ])),
+              ),
+              SizedBox(
+                width: 170,
+                child: FilledButton(
+                  onPressed: () => context.push('/trail/${trail.id}/walk'),
+                  child: const Text('산책 시작'),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
     );
   }
 }
 
-class _Stat extends StatelessWidget {
-  const _Stat({required this.icon, required this.label, required this.value});
-  final IconData icon;
-  final String label;
-  final String value;
+class _Heading extends StatelessWidget {
+  const _Heading(this.text);
+  final String text;
 
   @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(children: [
-        Icon(icon, color: AppColors.primary),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.black54)),
-      ]),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: 28, bottom: 14),
+        child: Text(text, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
+      );
+}
+
+class _MapPin extends StatelessWidget {
+  const _MapPin({required this.color, required this.icon});
+  final Color color;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 2),
+          boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 6)],
+        ),
+        child: Icon(icon,
+            size: 16, color: color == AppColors.black ? Colors.white : AppColors.black),
+      );
 }
 
 class _FavoriteButton extends StatelessWidget {
@@ -186,7 +281,7 @@ class _FavoriteButton extends StatelessWidget {
         final fav = snap.data?.contains(trail.id) ?? false;
         return IconButton(
           tooltip: fav ? '관심목록에서 제거' : '관심목록에 추가',
-          icon: Icon(fav ? Icons.favorite : Icons.favorite_border, color: fav ? Colors.red : null),
+          icon: Icon(fav ? Icons.favorite : Icons.favorite_border, color: fav ? AppColors.orange : null),
           onPressed: () async {
             try {
               await TrailService.instance.toggleFavorite(trail, fav);
@@ -245,46 +340,74 @@ class _ReviewSection extends StatelessWidget {
         final reviews = snap.data ?? [];
         final mine = reviews.where((r) => r.uid == myUid).firstOrNull;
         return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Text('리뷰 ${trail.ratingCount}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            const Spacer(),
-            TextButton.icon(
-              onPressed: () => _write(context, mine),
-              icon: const Icon(Icons.rate_review_outlined),
-              label: Text(mine == null ? '리뷰 쓰기' : '내 리뷰 수정'),
-            ),
-          ]),
+          Padding(
+            padding: const EdgeInsets.only(top: 20, bottom: 8),
+            child: Row(children: [
+              Text('리뷰 (${trail.ratingCount})',
+                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
+              const Spacer(),
+              const Icon(Icons.star_rounded, color: AppColors.yellow500, size: 22),
+              const SizedBox(width: 4),
+              Text(trail.ratingAvg.toStringAsFixed(1),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            ]),
+          ),
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+            onPressed: () => _write(context, mine),
+            icon: const Icon(Icons.rate_review_outlined, size: 18),
+            label: Text(mine == null ? '리뷰 쓰기' : '내 리뷰 수정'),
+          ),
           if (reviews.isEmpty)
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Text('첫 리뷰를 남겨주세요!', style: TextStyle(color: Colors.black54)),
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Text('첫 리뷰를 남겨주세요!', style: TextStyle(color: AppColors.grey400)),
             ),
           for (final r in reviews)
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Row(children: [
-                Text(r.authorName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(width: 8),
-                ...List.generate(
-                    5,
-                    (i) => Icon(i < r.rating ? Icons.star_rounded : Icons.star_outline_rounded,
-                        size: 14, color: AppColors.star)),
+            Padding(
+              padding: const EdgeInsets.only(top: 20),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.grey100,
+                  child: Text(r.authorName.isEmpty ? '?' : r.authorName.characters.first,
+                      style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.black)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      Expanded(
+                        child: Text(r.authorName,
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                      ),
+                      Text(fmtDate(r.createdAt),
+                          style: const TextStyle(color: AppColors.grey300, fontSize: 12)),
+                      if (r.uid == myUid || AuthService.instance.isAdmin)
+                        GestureDetector(
+                          onTap: () async {
+                            if (!await confirmDialog(context, '리뷰 삭제', '리뷰를 삭제할까요?')) return;
+                            try {
+                              await TrailService.instance.deleteReview(trail.id, uid: r.uid);
+                            } catch (e) {
+                              if (context.mounted) showSnack(context, friendlyError(e));
+                            }
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.only(left: 8),
+                            child: Icon(Icons.close, size: 16, color: AppColors.grey300),
+                          ),
+                        ),
+                    ]),
+                    const SizedBox(height: 4),
+                    RatingStars(rating: r.rating.toDouble(), showValue: false, size: 15),
+                    if (r.text.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(r.text, style: const TextStyle(height: 1.5, color: Color(0xFF3A3A3A))),
+                    ],
+                  ]),
+                ),
               ]),
-              subtitle: Text(r.text.isEmpty ? fmtDate(r.createdAt) : '${r.text}\n${fmtDate(r.createdAt)}'),
-              trailing: r.uid == myUid || AuthService.instance.isAdmin
-                  ? IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      onPressed: () async {
-                        if (!await confirmDialog(context, '리뷰 삭제', '리뷰를 삭제할까요?')) return;
-                        try {
-                          await TrailService.instance.deleteReview(trail.id, uid: r.uid);
-                        } catch (e) {
-                          if (context.mounted) showSnack(context, friendlyError(e));
-                        }
-                      },
-                    )
-                  : null,
             ),
         ]);
       },

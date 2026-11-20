@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/errors.dart';
+import '../../core/theme.dart';
 import '../../services/auth_service.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
@@ -32,7 +33,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Icon(Icons.mark_email_unread_outlined, size: 72, color: Colors.indigo),
+          const Icon(Icons.mark_email_unread_outlined, size: 72, color: AppColors.yellow700),
           const SizedBox(height: 16),
           Text('${auth.user?.email ?? ''} 로\n인증 메일을 보냈습니다.',
               textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),

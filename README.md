@@ -19,13 +19,26 @@ Android / iOS / Web 을 하나의 코드로 지원합니다.
 
 ## 화면
 
-| 로그인 | 지도 홈 | 산책로 상세 | 산책로 등록 |
-|---|---|---|---|
-| <img src="docs/screenshots/01_login.png" width="200"> | <img src="docs/screenshots/02b_map_selected.png" width="200"> | <img src="docs/screenshots/10_trail_detail.png" width="200"> | <img src="docs/screenshots/07_record.png" width="200"> |
-| **검색** | **커뮤니티** | **마이페이지** | **리워드** |
-| <img src="docs/screenshots/03_search.png" width="200"> | <img src="docs/screenshots/04_community.png" width="200"> | <img src="docs/screenshots/05_mypage.png" width="200"> | <img src="docs/screenshots/08_rewards.png" width="200"> |
+UI는 Figma 커뮤니티 디자인 **"Traveling Mobile App" (Pickolab Studio)** 의 스타일 가이드(컬러·타이포·컴포넌트)를 기반으로 MyWay 기능에 맞게 적용했습니다.
 
-> 로컬 에뮬레이터 + 샘플 데이터로 캡처한 웹 버전 화면입니다. 캡처 환경에서 지도 타일 서버 접속이 막혀 지도 배경은 회색으로 보입니다 (실제 기기/브라우저에서는 OpenStreetMap 지도가 표시됩니다).
+| 로그인 | 홈 | 지도 | 산책로 상세 | 산책로 등록 |
+|---|---|---|---|---|
+| <img src="docs/screenshots/01_login.png" width="160"> | <img src="docs/screenshots/00_home.png" width="160"> | <img src="docs/screenshots/02b_map_selected.png" width="160"> | <img src="docs/screenshots/10_trail_detail.png" width="160"> | <img src="docs/screenshots/07_record.png" width="160"> |
+| **검색** | **커뮤니티** | **마이페이지** | **리워드** | |
+| <img src="docs/screenshots/03_search.png" width="160"> | <img src="docs/screenshots/04_community.png" width="160"> | <img src="docs/screenshots/05_mypage.png" width="160"> | <img src="docs/screenshots/08_rewards.png" width="160"> | |
+
+> 로컬 에뮬레이터 + 샘플 데이터로 캡처한 웹 버전 화면입니다. 캡처 환경에서 지도 타일 서버 접속이 막혀 지도 배경은 회색으로 보입니다. 샘플 산책로에는 사진이 없어 카테고리 이모지 플레이스홀더가 표시되며, 사용자가 사진을 올리면 그 사진이 표시됩니다.
+
+### 디자인 토큰 (`lib/core/theme.dart`)
+
+| 토큰 | 값 | 용도 |
+|---|---|---|
+| Brand/Yellow/500 | `#FCD240` | 메인 CTA 버튼, 포인트 카드, 별점 |
+| Primary/Black/500 | `#1B1B1B` | 텍스트, 선택된 탭/칩 |
+| Black/400 · 300 · 200 · 100 | `#767676` `#BABABA` `#E8E8E8` `#F3F3F3` | 보조 텍스트 · placeholder · 테두리 · 검색창 배경 |
+| Error/500 | `#FD5B1F` | 하트(관심), 거리 강조 |
+| 폰트 | Urbanist + Noto Sans KR | |
+| 모서리 | 12 / 16 / 20 | 썸네일 / 입력·버튼 / 카드 |
 
 ---
 
@@ -33,7 +46,8 @@ Android / iOS / Web 을 하나의 코드로 지원합니다.
 
 | 기획서 | 구현 화면 / 기능 |
 |---|---|
-| **지도 홈** — 사진+평점 마커, 화장실/쉼터/자전거/산책로/관심목록 필터, 검색 | `lib/screens/map/map_screen.dart` |
+| **홈** — 인사, 검색, 카테고리, 인기/신규 산책로 | `lib/screens/home/home_screen.dart` |
+| **지도** — 사진+평점 마커, 화장실/쉼터/자전거/산책로/관심목록 필터, 검색 | `lib/screens/map/map_screen.dart` |
 | **산책로 등록** — 지도에서 경로 지정, 구간별 거리(`거리 375m`), 총거리·도보시간 | `trail_record_screen.dart` (지도에 그리기 / GPS로 걸으며 기록) → `trail_form_screen.dart` (사진·소개·#태그·카테고리: 반려견/야경 맛집 등) |
 | 산책로 등록 시작/종료, 산책로 목록 메뉴 | 지도 좌하단 메뉴, `trail_list_screen.dart` (최신/평점/인기순, 카테고리) |
 | 산책로 상세 | 경로 지도, 리뷰·별점(1인 1리뷰), 관심목록(♥), 수정/삭제 |

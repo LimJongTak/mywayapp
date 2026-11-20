@@ -33,56 +33,65 @@ class _CommunityScreenState extends State<CommunityScreen> with SingleTickerProv
   Widget build(BuildContext context) {
     final canWrite = _board != Board.notice || AuthService.instance.isAdmin;
     return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (context, _) => [
-          const SliverAppBar(
-            pinned: true,
-            title: BrandLogo(size: 26),
-            centerTitle: false,
-          ),
-          const SliverToBoxAdapter(child: SloganBanner(label: 'COMMUNITY')),
-          SliverToBoxAdapter(
-            child: Row(children: [
-              Expanded(
-                child: TabBar(
-                  controller: _tabs,
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.start,
-                  labelColor: AppColors.primary,
-                  tabs: [for (final b in Board.values) Tab(text: b.label)],
-                ),
-              ),
-              if (canWrite)
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: FilledButton.tonal(
-                    style: FilledButton.styleFrom(minimumSize: const Size(64, 36)),
+      body: SafeArea(
+        bottom: false,
+        child: Column(children: [
+          PageTitle(
+            '커뮤니티',
+            trailing: canWrite
+                ? FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      shape: const StadiumBorder(),
+                    ),
                     onPressed: () => context.push('/post/new?board=${_board.name}'),
-                    child: const Text('글쓰기'),
-                  ),
-                ),
-            ]),
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: const Text('글쓰기'),
+                  )
+                : null,
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: TextField(
-                controller: _search,
-                onChanged: (_) => setState(() {}),
-                decoration: const InputDecoration(
-                  hintText: '검색어를 입력하세요.',
-                  prefixIcon: Icon(Icons.search),
-                ),
-              ),
+          SizedBox(
+            height: 56,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+              children: [
+                for (final b in Board.values)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(b.label),
+                      selected: _board == b,
+                      showCheckmark: false,
+                      labelStyle: TextStyle(
+                        color: _board == b ? Colors.white : AppColors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      onSelected: (_) => _tabs.animateTo(b.index),
+                    ),
+                  ),
+              ],
             ),
           ),
-        ],
-        body: TabBarView(
-          controller: _tabs,
-          children: [
-            for (final b in Board.values) _BoardList(board: b, query: _search.text.trim()),
-          ],
-        ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+            child: SearchField(
+              controller: _search,
+              hint: '게시글 검색',
+              onChanged: (_) => setState(() {}),
+              onClear: () => setState(_search.clear),
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabs,
+              children: [
+                for (final b in Board.values) _BoardList(board: b, query: _search.text.trim()),
+              ],
+            ),
+          ),
+        ]),
       ),
     );
   }
@@ -101,12 +110,12 @@ class _BoardList extends StatelessWidget {
         final filtered = query.isEmpty
             ? posts
             : posts.where((p) => p.title.contains(query) || p.content.contains(query)).toList();
-        return ListView(padding: const EdgeInsets.symmetric(horizontal: 16), children: [
+        return ListView(padding: const EdgeInsets.symmetric(horizontal: 24), children: [
           if (board == Board.free && query.isEmpty) const _HotPosts(),
           if (filtered.isEmpty)
             EmptyView(message: query.isEmpty ? '첫 글을 작성해보세요!' : '검색 결과가 없습니다.'),
           for (final p in filtered) _PostTile(post: p),
-          const SizedBox(height: 80),
+          const SizedBox(height: 120),
         ]);
       },
     );
@@ -125,13 +134,14 @@ class _HotPosts extends StatelessWidget {
         if (hot.isEmpty) return const SizedBox.shrink();
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 8),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFF4EC),
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.yellow100,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('HOT 게시물 🔥🔥', style: TextStyle(fontWeight: FontWeight.w800)),
+            const Text('🔥 HOT 게시물', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            const SizedBox(height: 4),
             for (final p in hot)
               InkWell(
                 onTap: () => context.push('/post/${p.id}'),
@@ -160,25 +170,25 @@ class _PostTile extends StatelessWidget {
     return InkWell(
       onTap: () => context.push('/post/${post.id}'),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey.shade200))),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.grey200))),
         child: Row(children: [
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text.rich(TextSpan(children: [
-                TextSpan(text: post.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                TextSpan(text: post.title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                 if (post.commentCount > 0)
                   TextSpan(
                     text: ' [${post.commentCount}]',
-                    style: const TextStyle(color: AppColors.primary, fontSize: 12),
+                    style: const TextStyle(color: AppColors.orange, fontSize: 12),
                   ),
               ]), maxLines: 1, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
               Text('${post.authorName} · ${fmtDate(post.createdAt)}',
-                  style: const TextStyle(fontSize: 12, color: Colors.black45)),
+                  style: const TextStyle(fontSize: 12, color: AppColors.grey400)),
             ]),
           ),
-          Text('조회수: ${post.viewCount}', style: const TextStyle(fontSize: 12, color: Colors.black45)),
+          Text('조회수: ${post.viewCount}', style: const TextStyle(fontSize: 12, color: AppColors.grey400)),
         ]),
       ),
     );

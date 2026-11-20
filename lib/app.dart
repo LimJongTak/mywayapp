@@ -3,6 +3,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'core/theme.dart';
+import 'widgets/common.dart';
 import 'models/post.dart';
 import 'screens/admin/admin_inquiries_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -12,6 +13,7 @@ import 'screens/auth/verify_email_screen.dart';
 import 'screens/community/community_screen.dart';
 import 'screens/community/post_detail_screen.dart';
 import 'screens/community/post_form_screen.dart';
+import 'screens/home/home_screen.dart';
 import 'screens/map/map_screen.dart';
 import 'screens/mypage/favorites_screen.dart';
 import 'screens/mypage/inquiry_screens.dart';
@@ -54,7 +56,7 @@ const _publicPaths = {'/login', '/signup'};
 
 GoRouter _buildRouter(AuthService auth) {
   return GoRouter(
-    initialLocation: '/map',
+    initialLocation: '/home',
     refreshListenable: auth,
     redirect: (context, state) {
       final loc = state.matchedLocation;
@@ -64,8 +66,8 @@ GoRouter _buildRouter(AuthService auth) {
       if (!auth.profileLoaded) return loc == '/splash' ? null : '/splash';
       if (auth.profile == null) return loc == '/onboarding' ? null : '/onboarding';
       const gates = {'/login', '/signup', '/splash', '/verify-email', '/onboarding'};
-      if (gates.contains(loc)) return '/map';
-      if (loc.startsWith('/admin') && !auth.isAdmin) return '/map';
+      if (gates.contains(loc)) return '/home';
+      if (loc.startsWith('/admin') && !auth.isAdmin) return '/home';
       return null;
     },
     routes: [
@@ -78,10 +80,10 @@ GoRouter _buildRouter(AuthService auth) {
         builder: (context, state, shell) => AppShell(shell: shell),
         branches: [
           StatefulShellBranch(routes: [
-            GoRoute(path: '/map', builder: (_, _) => const MapScreen()),
+            GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/search', builder: (_, _) => const SearchScreen()),
+            GoRoute(path: '/map', builder: (_, _) => const MapScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(path: '/community', builder: (_, _) => const CommunityScreen()),
@@ -91,6 +93,7 @@ GoRouter _buildRouter(AuthService auth) {
           ]),
         ],
       ),
+      GoRoute(path: '/search', builder: (_, _) => const SearchScreen()),
       // 산책로
       GoRoute(path: '/trails', builder: (_, _) => const TrailListScreen()),
       GoRoute(path: '/trail/record', builder: (_, _) => const TrailRecordScreen()),
@@ -152,9 +155,7 @@ class _Splash extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('MyWay',
-                style: TextStyle(
-                    fontSize: 40, fontWeight: FontWeight.w800, color: AppColors.primary)),
+            BrandLogo(size: 44),
             SizedBox(height: 16),
             CircularProgressIndicator(),
           ],

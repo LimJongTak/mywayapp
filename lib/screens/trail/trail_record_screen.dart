@@ -98,7 +98,7 @@ class _TrailRecordScreenState extends State<TrailRecordScreen> {
           children: [
             const OsmTileLayer(),
             PolylineLayer(polylines: [
-              Polyline(points: _points, strokeWidth: 4, color: Colors.red.shade700),
+              Polyline(points: _points, strokeWidth: 4, color: AppColors.black),
             ]),
             MarkerLayer(markers: [
               if (showLabels)
@@ -113,7 +113,7 @@ class _TrailRecordScreenState extends State<TrailRecordScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.red.shade700, width: 2),
+                        border: Border.all(color: AppColors.black, width: 2),
                       ),
                     ),
                   ),
@@ -147,7 +147,12 @@ class _TrailRecordScreenState extends State<TrailRecordScreen> {
           right: 12,
           child: Center(
             child: SegmentedButton<RecordMode>(
-              style: SegmentedButton.styleFrom(backgroundColor: Colors.white),
+              style: SegmentedButton.styleFrom(
+                backgroundColor: Colors.white,
+                selectedBackgroundColor: AppColors.black,
+                selectedForegroundColor: Colors.white,
+                side: const BorderSide(color: AppColors.grey200),
+              ),
               segments: const [
                 ButtonSegment(
                     value: RecordMode.draw, icon: Icon(Icons.touch_app), label: Text('지도에 그리기')),
@@ -209,8 +214,7 @@ class _TrailRecordScreenState extends State<TrailRecordScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: FilledButton(
-                  style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 40), backgroundColor: AppColors.primary),
+                  style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
                   onPressed: _recording ? null : _next,
                   child: const Text('다음'),
                 ),
