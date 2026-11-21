@@ -1,0 +1,57 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Firebase: 에뮬레이터 시작",
+      "type": "shell",
+      "command": "firebase emulators:start --project demo-myway",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": { "regexp": "^x" },
+        "background": {
+          "activesBegin": true,
+          "beginsPattern": "Starting emulators",
+          "endsPattern": "All emulators ready"
+        }
+      }
+    },
+    {
+      "label": "Firebase: 데모 데이터 넣기",
+      "type": "shell",
+      "command": "npm run seed:demo",
+      "options": { "cwd": "${workspaceFolder}/functions" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Functions: 빌드 감시 (watch)",
+      "type": "shell",
+      "command": "npm run build:watch",
+      "options": { "cwd": "${workspaceFolder}/functions" },
+      "isBackground": true,
+      "problemMatcher": "$tsc-watch"
+    },
+    {
+      "label": "테스트: Flutter",
+      "type": "shell",
+      "command": "flutter analyze && flutter test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "테스트: Functions 단위",
+      "type": "shell",
+      "command": "npm test",
+      "options": { "cwd": "${workspaceFolder}/functions" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "테스트: 보안 규칙 + Functions 통합 (에뮬레이터)",
+      "type": "shell",
+      "command": "npm test",
+      "options": { "cwd": "${workspaceFolder}/security-tests" },
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

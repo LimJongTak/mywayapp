@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// MyWay Storage 보안 규칙
+//  - 본인 폴더(users/{uid}/...)에만 업로드
+//  - 이미지 파일만, 5MB 이하
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp|heic)');
+    }
+    function smallEnough() { return request.resource.size < 5 * 1024 * 1024; }
+
+    match /users/{uid}/{category}/{fileName} {
+      allow read: if true; // 산책로 사진은 공개
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && category in ['trails', 'profile']
+        && fileName.matches('[A-Za-z0-9_-]{1,80}\\.(jpg|jpeg|png|webp|heic)')
+        && isImage() && smallEnough();
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,201 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────
+// MyWay Firestore 보안 규칙
+//  - 기본 거부(deny by default)
+//  - 포인트·평점·조회수·카운터 등은 Cloud Functions(Admin SDK)만 수정
+//  - 모든 쓰기는 필드 화이트리스트 + 타입/길이 검증
+// ─────────────────────────────────────────────────────────────
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── 공통 함수 ──
+    function signedIn() { return request.auth != null; }
+    function isUser(uid) { return signedIn() && request.auth.uid == uid; }
+    function isAdmin() { return signedIn() && request.auth.token.admin == true; }
+    function verified() {
+      // 이메일 가입자는 이메일 인증 필수, 소셜 로그인은 공급자가 인증
+      return signedIn() && (request.auth.token.email_verified == true
+        || request.auth.token.firebase.sign_in_provider != 'password');
+    }
+    function hasProfile() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    function myNickname() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.nickname;
+    }
+    function str(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
+    function optStr(data, key, max) { return !(key in data) || data[key] == null || str(data[key], 0, max); }
+    function onlyKeys(keys) { return request.resource.data.keys().hasOnly(keys); }
+    function changedOnly(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+    function isNow(t) { return t == request.time; }
+
+    // ── 사용자 프로필 ──
+    // 생성은 initProfile 함수만 가능 (가입 보너스/추천인 처리)
+    match /users/{uid} {
+      allow read: if isUser(uid) || isAdmin();
+      allow create, delete: if false;
+      // 클라이언트는 프로필 사진만 변경 가능 (닉네임은 중복검사 위해 함수 사용)
+      allow update: if isUser(uid)
+        && changedOnly(['photoUrl'])
+        && optStr(request.resource.data, 'photoUrl', 1000);
+
+      // 관심목록
+      match /favorites/{trailId} {
+        allow read: if isUser(uid);
+        allow create: if isUser(uid) && onlyKeys(['createdAt', 'title'])
+          && isNow(request.resource.data.createdAt)
+          && str(request.resource.data.title, 0, 50)
+          && exists(/databases/$(database)/documents/trails/$(trailId));
+        allow delete: if isUser(uid);
+        allow update: if false;
+      }
+
+      // 서버 전용 기록 (읽기만 허용)
+      match /pointLogs/{id} { allow read: if isUser(uid) || isAdmin(); allow write: if false; }
+      match /walks/{id}     { allow read: if isUser(uid);               allow write: if false; }
+      match /coupons/{id}   { allow read: if isUser(uid) || isAdmin(); allow write: if false; }
+      match /dailyStats/{d} { allow read: if isUser(uid);               allow write: if false; }
+    }
+
+    // 서버 전용 인덱스 컬렉션
+    match /nicknames/{n}     { allow read, write: if false; }
+    match /referralCodes/{c} { allow read, write: if false; }
+    match /processedEvents/{e} { allow read, write: if false; }
+
+    // ── 산책로 ──
+    match /trails/{trailId} {
+      function validPath(p) { return p is list && p.size() >= 2 && p.size() <= 2000; }
+      function validTrailFields(d) {
+        return str(d.title, 1, 50)
+          && str(d.description, 0, 1000)
+          && d.tags is list && d.tags.size() <= 10
+          && d.category in ['general', 'dog', 'night', 'nature', 'city', 'family']
+          && optStr(d, 'photoUrl', 1000)
+          && optStr(d, 'photoPath', 300)
+          && (!('photoPath' in d) || d.photoPath == null
+              || d.photoPath.matches('users/' + request.auth.uid + '/trails/.*'));
+      }
+
+      allow read: if true; // 비로그인 사용자도 지도 탐색 가능
+      allow create: if verified() && hasProfile()
+        && onlyKeys(['ownerId', 'ownerName', 'title', 'description', 'tags', 'category',
+                     'path', 'distanceM', 'durationMin', 'startLocation', 'photoUrl', 'photoPath',
+                     'ratingAvg', 'ratingCount', 'favoriteCount', 'walkCount',
+                     'createdAt', 'updatedAt'])
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerName == myNickname()
+        && validTrailFields(request.resource.data)
+        && validPath(request.resource.data.path)
+        && request.resource.data.startLocation is latlng
+        && request.resource.data.distanceM is number
+        && request.resource.data.distanceM > 0 && request.resource.data.distanceM < 100000
+        && request.resource.data.durationMin is int
+        && request.resource.data.ratingAvg == 0
+        && request.resource.data.ratingCount == 0
+        && request.resource.data.favoriteCount == 0
+        && request.resource.data.walkCount == 0
+        && isNow(request.resource.data.createdAt)
+        && isNow(request.resource.data.updatedAt);
+      // 소유자는 설명 정보만 수정 (경로·집계값 수정 불가)
+      allow update: if isUser(resource.data.ownerId)
+        && changedOnly(['title', 'description', 'tags', 'category', 'photoUrl', 'photoPath', 'updatedAt'])
+        && validTrailFields(request.resource.data)
+        && isNow(request.resource.data.updatedAt);
+      allow delete: if isUser(resource.data.ownerId) || isAdmin();
+
+      // 리뷰: 문서 ID = 작성자 uid → 1인 1리뷰
+      match /reviews/{uid} {
+        allow read: if true;
+        allow create, update: if isUser(uid) && verified() && hasProfile()
+          && onlyKeys(['rating', 'text', 'authorName', 'createdAt'])
+          && request.resource.data.rating is int
+          && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+          && str(request.resource.data.text, 0, 500)
+          && request.resource.data.authorName == myNickname()
+          && isNow(request.resource.data.createdAt);
+        allow delete: if isUser(uid) || isAdmin();
+      }
+    }
+
+    // ── 편의시설 (관리자만 등록) ──
+    match /facilities/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── 리워드 상품 (관리자만 등록, 교환은 redeemReward 함수) ──
+    match /rewards/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── 커뮤니티 ──
+    match /posts/{postId} {
+      function validPost(d) {
+        return str(d.title, 1, 100) && str(d.content, 1, 5000)
+          && d.board in ['notice', 'free', 'qna']
+          && (d.board != 'notice' || isAdmin()); // 공지사항은 관리자만
+      }
+      allow read: if true;
+      allow create: if verified() && hasProfile()
+        && onlyKeys(['board', 'title', 'content', 'authorId', 'authorName',
+                     'viewCount', 'commentCount', 'createdAt', 'updatedAt'])
+        && validPost(request.resource.data)
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.authorName == myNickname()
+        && request.resource.data.viewCount == 0
+        && request.resource.data.commentCount == 0
+        && isNow(request.resource.data.createdAt)
+        && isNow(request.resource.data.updatedAt);
+      allow update: if isUser(resource.data.authorId)
+        && changedOnly(['title', 'content', 'updatedAt'])
+        && validPost(request.resource.data)
+        && isNow(request.resource.data.updatedAt);
+      allow delete: if isUser(resource.data.authorId) || isAdmin();
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if verified() && hasProfile()
+          && onlyKeys(['authorId', 'authorName', 'content', 'createdAt'])
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.authorName == myNickname()
+          && str(request.resource.data.content, 1, 1000)
+          && isNow(request.resource.data.createdAt)
+          && exists(/databases/$(database)/documents/posts/$(postId));
+        allow update: if false;
+        allow delete: if isUser(resource.data.authorId) || isAdmin();
+      }
+
+      match /viewers/{uid} { allow read, write: if false; }
+    }
+
+    // ── 고객센터 문의 ──
+    match /inquiries/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && hasProfile()
+        && onlyKeys(['uid', 'authorName', 'title', 'content', 'status', 'answer', 'createdAt', 'answeredAt'])
+        && request.resource.data.uid == request.auth.uid
+        && str(request.resource.data.title, 1, 100)
+        && str(request.resource.data.content, 1, 3000)
+        && request.resource.data.status == 'open'
+        && request.resource.data.answer == null
+        && request.resource.data.answeredAt == null
+        && isNow(request.resource.data.createdAt);
+      // 관리자만 답변 등록
+      allow update: if isAdmin()
+        && changedOnly(['answer', 'status', 'answeredAt'])
+        && str(request.resource.data.answer, 1, 3000)
+        && request.resource.data.status == 'answered'
+        && isNow(request.resource.data.answeredAt);
+      allow delete: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+    }
+
+    // 그 외 모든 경로 거부
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
