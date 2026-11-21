@@ -55,3 +55,6 @@ firebase-debug.log*
 # 서비스 계정 키 등 비밀 정보 (절대 커밋 금지)
 sa.json
 *service-account*.json
+
+# Firebase 에뮬레이터 로컬 데이터
+.emulator-data/

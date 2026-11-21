@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "MyWay (Chrome · 에뮬레이터)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "chrome",
+      "args": ["--dart-define=USE_EMULATOR=true"]
+    },
+    {
+      "name": "MyWay (현재 기기 · 에뮬레이터)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": ["--dart-define=USE_EMULATOR=true"]
+    },
+    {
+      "name": "MyWay (현재 기기 · 실제 Firebase)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "MyWay (Chrome · 실제 Firebase + App Check)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "chrome",
+      "args": ["--dart-define=RECAPTCHA_SITE_KEY=여기에_reCAPTCHA_v3_사이트키"]
+    }
+  ]
+}

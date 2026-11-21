@@ -1,3 +1,4 @@
+// (클라우드 샌드박스 전용, `npm run test:sandbox`) 일반 PC에서는 필요 없음.
 // 테스트 전용: firebase-tools 가 NO_PROXY 를 무시하고 localhost 에뮬레이터 호출까지
 // HTTPS 프록시로 보내는 문제를 막는다. 루프백 주소만 직접 연결하고 그 외는 프록시 유지.
 const path = require("node:path");

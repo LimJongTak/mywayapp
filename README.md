@@ -137,6 +137,8 @@ nicknames/{n}*, referralCodes/{code}*, processedEvents/{id}*            서버 �
 
 ## 4. 시작하기
 
+> 📘 **새 PC / VS Code 개발 환경 세팅은 [setup.md](setup.md) 에 단계별로 자세히 정리되어 있습니다.**
+
 ### 사전 준비
 - Flutter 3.50+ / Node.js 22 / Java 21 (에뮬레이터용)
 - `npm i -g firebase-tools` · `dart pub global activate flutterfire_cli`
@@ -151,7 +153,7 @@ cd functions && npm install && npm run build && cd ..
 firebase emulators:start --project demo-myway
 
 # 터미널 2: 샘플 편의시설·리워드 등록
-cd functions && FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 GCLOUD_PROJECT=demo-myway node lib/scripts/seed.js
+cd functions && npm run seed:demo   # 데모 계정 demo@myway.uk / demo1234
 
 # 터미널 3: 앱 실행 (웹/에뮬레이터)
 flutter run -d chrome --dart-define=USE_EMULATOR=true

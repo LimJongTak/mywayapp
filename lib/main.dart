@@ -12,6 +12,9 @@ import 'services/firebase_refs.dart';
 /// 로컬 개발: flutter run --dart-define=USE_EMULATOR=true
 const _useEmulator = bool.fromEnvironment('USE_EMULATOR');
 
+/// 실제 기기에서 PC의 에뮬레이터에 붙을 때: --dart-define=EMULATOR_HOST=192.168.0.10
+const _emulatorHost = String.fromEnvironment('EMULATOR_HOST');
+
 /// 웹 App Check 용 reCAPTCHA v3 사이트 키: --dart-define=RECAPTCHA_SITE_KEY=...
 const _recaptchaKey = String.fromEnvironment('RECAPTCHA_SITE_KEY');
 
@@ -33,7 +36,10 @@ Future<void> main() async {
   }
 
   if (_useEmulator) {
-    final host = defaultTargetPlatform == TargetPlatform.android && !kIsWeb ? '10.0.2.2' : 'localhost';
+    // Android 에뮬레이터는 10.0.2.2 로 PC에 접속. 실제 폰은 --dart-define=EMULATOR_HOST=<PC의 IP>
+    final host = _emulatorHost.isNotEmpty
+        ? _emulatorHost
+        : (defaultTargetPlatform == TargetPlatform.android && !kIsWeb ? '10.0.2.2' : 'localhost');
     await Fb.auth.useAuthEmulator(host, 9099);
     Fb.db.useFirestoreEmulator(host, 8080);
     Fb.functions.useFunctionsEmulator(host, 5001);

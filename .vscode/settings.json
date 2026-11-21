@@ -1,0 +1,26 @@
+{
+  "dart.lineLength": 100,
+  "[dart]": {
+    "editor.formatOnSave": true,
+    "editor.rulers": [100],
+    "editor.tabSize": 2
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+  "files.exclude": {
+    "**/.dart_tool": true,
+    "**/build": true,
+    "**/node_modules": true,
+    "functions/lib": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/build": true,
+    "functions/lib": true
+  },
+  "files.associations": {
+    "*.rules": "firerules"
+  }
+}
